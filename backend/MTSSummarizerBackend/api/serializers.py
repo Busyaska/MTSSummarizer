@@ -19,7 +19,7 @@ class ArticleDataBaseSerializer(serializers.ModelSerializer):
                                       summary=summary, user=user)
 
 
-class ArticleLiteSerialiser(serializers.Serializer):
+class ArticleSerialiser(serializers.Serializer):
     url = serializers.URLField()
     title = serializers.CharField(required=False)
     summary = serializers.CharField(required=False)
