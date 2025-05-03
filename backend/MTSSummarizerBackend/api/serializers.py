@@ -17,6 +17,11 @@ class ArticleDataBaseSerializer(serializers.ModelSerializer):
         summary = f'{title} - {url}'
         return Article.objects.create(url=url, title=title,
                                       summary=summary, user=user)
+    
+    def validate_url(self, value):
+        if 'habr.com' not in value:
+            raise serializers.ValidationError('This is not habr article.')
+        return value
 
 
 class ArticleSerialiser(serializers.Serializer):
@@ -35,6 +40,11 @@ class ArticleSerialiser(serializers.Serializer):
                'summary': summary,
                'created_at': created_at}
         return obj
+    
+    def validate_url(self, value):
+        if 'habr.com' not in value:
+            raise serializers.ValidationError('This is not habr article.')
+        return value
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
