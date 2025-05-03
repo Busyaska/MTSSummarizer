@@ -1,0 +1,364 @@
+/*Цветовая палитра и шрифты*/
+
+
+/* 
+ bg-color      — основной фон приложения
+ text-color    — основной цвет текста
+ border-color  — цвет границ и разделителей
+ panel-bg      — фон блоков с контентом
+ primary-color — цвет кнопок, ссылок, иконок
+*/
+:root {
+  --bg-color:       #fff;
+  --text-color:     #666666;
+  --border-color:   #ccc;
+  --panel-bg:       #f3f4f6;
+  --primary-color:  #ED1C24;
+}
+/* Переопределение переменных для тёмной темы */
+[data-theme="dark"] {
+  --bg-color:       #121212;
+  --text-color:     #f0f0f0;
+  --border-color:   #434343;
+  --panel-bg:       #1e1e1e;
+  --primary-color:  #ED1C24;
+}
+
+/* 
+  подключаем шрифт Montserrat на всё тело документа и 
+  внутри корневого контейнера .app-container
+*/
+body, .app-container {
+  margin:         0;
+  padding:        0;
+  background:     var(--bg-color);
+  color:          var(--text-color);
+  font-family:    'Montserrat', sans-serif;
+}
+
+/* основная раскладка (Layout) */
+
+/* 
+  .app-container — flex-контейнер всей страницы на весь экран
+*/
+.app-container {
+  display:  flex;
+  height:   100vh;
+}
+/* 
+  .main-area — вертикально-ориентированная колонка
+*/
+.main-area {
+  flex-grow:        1;
+  display:          flex;
+  flex-direction:   column;
+}
+/* 
+  .content — область скроллинга внутри main-area 
+  с отступами и фоном панели
+*/
+.content {
+  flex-grow:   1;
+  padding:     20px;
+  overflow-y:  auto;
+  background:  var(--panel-bg);
+}
+
+/* компоненты управления*/
+
+/* 
+  .btn-primary — акцентная кнопка
+  - фон: primary-color
+  - белый текст
+  - закруглённые углы
+*/
+.btn-primary {
+  background-color:  var(--primary-color);
+  color:             #fff;
+  border:            none;
+  padding:           10px 20px;
+  border-radius:     8px;
+  font-size:         16px;
+  cursor:            pointer;
+  transition:        background 0.2s;
+  height: 40px;
+  width: 180px;
+}
+.btn-primary:hover {
+  background-color:  #c4161b; /* чуть темнее при наведении */
+}
+
+/* 
+  .link-auth — стиль ссылок на страницы входа/регистрации
+*/
+.link-auth {
+  color:            #0066cc;
+  text-decoration:  none;
+  transition:       color 0.2s;
+}
+.link-auth:hover {
+  color: #004999;
+}
+
+/*панели контента */
+
+/* 
+  .panel — общий контейнер карточек (резюме, кластеризация, и т.д.)
+*/
+.panel {
+  padding:           20px;
+  background-color:  var(--bg-color);
+  border:            1px solid var(--border-color);
+  border-radius:     8px;
+  margin-bottom:     20px;
+}
+.panel-content {
+  margin: 0; /* сброс отступов внутри */
+}
+
+/* формы и поля ввода*/
+
+/* 
+  input, textarea — базовый стиль для всех полей ввода
+  box-sizing для корректного расчёта ширины
+*/
+input,
+textarea {
+  background:        var(--bg-color);
+  color:             var(--text-color);
+  border:            1px solid var(--border-color);
+  border-radius:     4px;
+  font-family:       'Montserrat', sans-serif;
+  box-sizing:        border-box;
+}
+
+/* 
+  .page-center — контейнер для центровки форм входа/регистрации
+*/
+.page-center {
+  display:           flex;
+  flex-direction:    column;
+  align-items:      center;
+  justify-content:  center;
+  height:            100%;
+  gap:               10px;
+}
+/* 
+  .input-field      поле ввода формы
+  .input-field-reg  поле ввода для регистрации
+*/
+.input-field {
+  width:             600px;
+  padding:           10px;
+  border:            1px solid var(--border-color);
+  border-radius:     4px;
+  resize: none;
+  margin-bottom: 10px;
+}
+.input-field-cp {
+  width:             200px;
+  padding:           8px;
+  border:            1px solid var(--border-color);
+  border-radius:     4px;
+}
+.input-field-reg {
+  width:             300px;
+  padding:           8px;
+  border:            1px solid var(--border-color);
+  border-radius:     4px;
+}
+
+/*Спиннер загрузки*/
+
+/* 
+  .loader — круговой индикатор с бесконечным спином загрузки
+*/
+.loader {
+  border:            4px solid var(--panel-bg);
+  border-top:        4px solid var(--primary-color);
+  border-radius:     50%;
+  width:             40px;
+  height:            40px;
+  animation:         spin 1s linear infinite;
+  margin:            20px auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Header и Sidebar*/
+
+/* 
+  .header — шапка приложения
+  фиксированная высота 65px
+  flex для размещения лого и кнопок
+*/
+.header {
+  height:             65px;
+  background-color:   var(--bg-color);
+  border-bottom:      1px solid var(--border-color);
+  display:            flex;
+  align-items:       center;
+  justify-content:   space-between;
+  padding:            0 20px;
+}
+/* 
+  .btn-icon — маленькая кнопка (боковая панель, тема)
+*/
+.btn-icon {
+  background:         none;
+  border:             none;
+  font-size:          24px;
+  cursor:             pointer;
+  color:              var(--text-color);
+}
+/* 
+  .logo — логотип
+*/
+.logo {
+  height:             60px;
+  width:              auto;
+  cursor:             pointer;
+}
+/* 
+  .avatar — иконка профиля пользователя
+*/
+.avatar {
+  height:             40px;
+  border-radius:      50%;
+  cursor:             pointer;
+}
+/* 
+  .sidebar — боковая панель
+  фиксированная ширина 250px
+*/
+.sidebar {
+  width:              250px;
+  background-color:   var(--bg-color);
+  border-right:       1px solid var(--border-color);
+  padding:            20px;
+  display:            flex;
+  flex-direction:    column;
+  justify-content:   space-between;
+}
+/* 
+  .history-group strong — стили для заголовков внутри истории запросов
+*/
+.history-group strong {
+  display:           block;
+  margin-top:        10px;
+}
+/* 
+  .link-primary — стиль ссылки «Оставить отзыв»
+*/
+.link-primary {
+  color:              var(--primary-color);
+  text-decoration:    none;
+}
+
+/*Страница Ошибки 404*/
+
+/* 
+  .error-page-wrapper — контейнер для position: relative
+*/
+.error-page-wrapper {
+  position: relative;
+  width:    100%;
+  height:   100vh;
+}
+/* 
+  .error-canvas — канвас на весь экран
+*/
+.error-canvas {
+  position: fixed;
+  inset:    0;
+  z-index:  1;
+}
+/* 
+  .home-button — кнопка «Вернуться на главную»
+  находится фиксированно под текстом 404
+*/
+.home-button {
+  position:        fixed;
+  top:             calc(50% + 33%);
+  left:            50%;
+  transform:       translateX(-50%);
+  z-index:         2;
+  background:      #ED1C24;
+  color:           #fff;
+  border:          none;
+  padding:         12px 24px;
+  border-radius:   8px;
+  font-size:       1rem;
+  cursor:          pointer;
+  font-family:     'Montserrat', sans-serif;
+}
+.home-button:hover {
+  background:      #c4161b;
+}
+
+/*HomePage */
+.home-container {
+  max-width:    800px;
+  margin:       0 auto;
+  padding:      20px 0;
+}
+.url-section {
+  display:      flex;
+  gap:          10px;
+  margin-bottom: 20px;
+}
+
+/* Метрики */
+.metrics-header {
+  display:       flex;
+  align-items:   center;
+  margin-bottom: 12px;
+  color:         #ED1C24;
+  font-weight:   600;
+}
+.icon-sparkle {
+  margin-right: 8px;
+}
+
+/* Резюме */
+.summary-text {
+  white-space:   pre-wrap;
+  margin-bottom: 20px;
+}
+
+/* Кластеризация */
+.cluster-section {
+  margin-bottom: 20px;
+}
+.cluster-row {
+  display:       flex;
+  align-items:   center;
+  gap:           10px;
+}
+
+/* Ключевые слова */
+.keywords-section {
+  margin-bottom: 20px;
+}
+.keyword-list {
+  list-style:      disc inside;
+  margin:          0;
+  padding-left:    20px;
+}
+
+
+/* Блок обратной связи */
+
+.feedback-container {
+  max-width: 600px;
+  margin: 0 auto;
+  margin-top: 10px;
+  background: var(--bg-color);
+  padding: 20px;
+  border-radius: 8px;
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+
+}
