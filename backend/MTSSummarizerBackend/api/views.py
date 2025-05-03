@@ -1,5 +1,6 @@
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.filters import SearchFilter
 from .serializers import ArticleDataBaseSerializer, ArticleSerialiser, ArticleListSerializer
 from .models import Article
 
@@ -21,6 +22,8 @@ class ArticleCreateView(CreateAPIView):
 
 class ArticleListView(ListAPIView):
     serializer_class = ArticleListSerializer
+    filter_backends = (SearchFilter,)
+    search_fields = ('title',)
 
     def get_queryset(self):
         return Article.objects.filter(user=self.request.user)
