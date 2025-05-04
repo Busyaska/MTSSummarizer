@@ -53,3 +53,9 @@ class ArticleListSerializer(serializers.ModelSerializer):
         model = Article
         fields = ('id', 'title', 'created_at')
         read_only_feilds = ('id', 'title', 'created_at')
+
+
+class ArticleLatestSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    publish_time = serializers.CharField()
+    url = serializers.URLField()

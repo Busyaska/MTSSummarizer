@@ -1,7 +1,9 @@
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter
-from .serializers import ArticleDataBaseSerializer, ArticleSerialiser, ArticleListSerializer
+from rest_framework.pagination import PageNumberPagination
+from .serializers import (ArticleDataBaseSerializer, ArticleSerialiser,
+                          ArticleListSerializer, ArticleLatestSerializer)
 from .models import Article
 
 
@@ -22,6 +24,7 @@ class ArticleCreateView(CreateAPIView):
 
 class ArticleListView(ListAPIView):
     serializer_class = ArticleListSerializer
+    pagination_class = PageNumberPagination
     filter_backends = (SearchFilter,)
     search_fields = ('title',)
 
@@ -38,3 +41,11 @@ class ArticleDetailView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Article.objects.filter(user=self.request.user)
+
+
+class ArticleLatestListView(ListAPIView):
+    serializer_class = ArticleLatestSerializer
+    permission_classes = (AllowAny,)
+
+    def get_queryset(self):
+        ...
