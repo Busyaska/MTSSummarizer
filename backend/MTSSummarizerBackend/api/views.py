@@ -1,10 +1,11 @@
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from .serializers import (ArticleDataBaseSerializer, ArticleSerialiser,
                           ArticleListSerializer, ArticleLatestSerializer)
 from .models import Article
+from .habr_parser import parser
 
 
 class ArticleCreateView(CreateAPIView):
@@ -32,7 +33,7 @@ class ArticleListView(ListAPIView):
         return Article.objects.filter(user=self.request.user)
     
 
-class ArticleDetailView(RetrieveUpdateDestroyAPIView):
+class ArticleDetailView(RetrieveDestroyAPIView):
     serializer_class = ArticleDataBaseSerializer
     lookup_url_kwarg = 'article_id'
 
@@ -48,4 +49,4 @@ class ArticleLatestListView(ListAPIView):
     permission_classes = (AllowAny,)
 
     def get_queryset(self):
-        ...
+        return parser.get_latest_articles()

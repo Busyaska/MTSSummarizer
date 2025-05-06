@@ -1,17 +1,10 @@
-import asyncio
+import logging
+import random
+import requests
 import aiohttp
 from asyncio.exceptions import TimeoutError, CancelledError
 from aiohttp_retry import RetryClient, ExponentialRetry
-from aiohttp import BasicAuth
-from aiohttp.client_exceptions import ConnectionTimeoutError
-
-import random
-
-from typing import List, Optional, Tuple, Any
-
-import logging
-
-import requests
+from typing import List, Optional, Tuple
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
@@ -107,6 +100,7 @@ class HabrParser:
         article_num = article_page.split('/')[-2]
         try:
             async with session.get(article_page, proxy=proxy, proxy_auth=proxy_auth, headers=headers) as response:
+                print(response.status)
                 soup = await self._get_soup(response)
                 article_title = soup.select_one("head > title").get_text().split(" / ")[0].strip()
                 article_text = soup.select_one("div.article-formatted-body").get_text(separator='\n').strip()
@@ -165,7 +159,6 @@ class HabrParser:
 
         page = requests.get('https://habr.com/ru/companies/ru_mts/articles/')
         bs = BeautifulSoup(page.text, 'html.parser')
-        res = []
 
         latest_articles = []
         for article in bs.find_all(class_="tm-articles-list__item", limit=5):
@@ -173,7 +166,7 @@ class HabrParser:
             title_with_link = article.find(class_="tm-title__link")
             title = title_with_link.string
             url = 'habr.com' + title_with_link["href"]
-            res.append({'title': title, 'publish_time': publish_time, 'url': url})
+            latest_articles.append({'title': title, 'publish_time': publish_time, 'url': url})
 
         return latest_articles
     
