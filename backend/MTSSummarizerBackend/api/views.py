@@ -2,6 +2,7 @@ from adrf.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from asgiref.sync import sync_to_async
 from django.shortcuts import get_object_or_404, get_list_or_404
@@ -33,10 +34,25 @@ class ArticleCreateView(APIView):
 class ArticleListView(APIView):
     serializer_class = ArticleListSerializer
     pagination_class = PageNumberPagination
+    filter_class = SearchFilter
+    search_fields = ('title',)
     model = Article
     
     async def get(self, request,  *args, **kwargs):
-        article_objects = await sync_to_async(list)(self.model.objects.filter(user=request.user))
+
+        def get_queryset():
+            queryset = self.model.objects.filter(user=request.user)
+            len(queryset)
+            return queryset
+        
+        def get_filtred_queryset(queryset):
+            filter = self.filter_class()
+            filtred_queryset = filter.filter_queryset(request, queryset, self)
+            len(filtred_queryset)
+            return filtred_queryset
+        
+        queryset = await sync_to_async(get_queryset)()
+        article_objects = await sync_to_async(get_filtred_queryset)(queryset)
         serialized_articles = []
         for article in article_objects:
             serializer = self.serializer_class(article)
