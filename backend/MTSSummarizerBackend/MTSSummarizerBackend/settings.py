@@ -16,9 +16,10 @@ from os import getenv
 from datetime import timedelta
 
 
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -76,6 +77,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'MTSSummarizerBackend.wsgi.application'
+ASGI_APPLICATION = 'MTSSummarizerBackend.asgi.application'
 
 
 # Database
@@ -136,7 +138,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'MTSSummarizerBackend.permissions.IsAuthenticatedAndIsAuthor',
     ],
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.UserRateThrottle',
@@ -150,7 +152,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
 } 

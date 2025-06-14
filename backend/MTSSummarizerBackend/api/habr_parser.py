@@ -17,6 +17,7 @@ logging.basicConfig(
 
 
 class HabrParser:
+
     def __init__(
         self,
         proxies: Optional[List[str]] = None,
@@ -142,34 +143,53 @@ class HabrParser:
         return random.choice(self.proxies)
     
 
-    def get_latest_articles(self) -> list[dict[str, str]]:
+    async def parsing_latest_articles(self) -> list[dict[str, str]]:
         """
-        Получает последние 5 статей с Хабра (habr.com)
-        и возвращает их в виде списка словарей с заголовком, временем публикации и URL.
+        Получает последние статьи с Хабра (habr.com).
 
+        :returns: Список словарей, в котором содержится заголовок, время публикации и  url статьи.
+        """
+        async with aiohttp.ClientSession(timeout=self.timeout, raise_for_status=False) as client_session:
+            async with RetryClient(client_session=client_session, retry_options=self.retry_options) as retry_session:
+                latest_articles_result = await self._get_latest_articles_data(retry_session)
+                return latest_articles_result
+    
+    
+    async def _get_latest_articles_data(self, session: RetryClient) -> list[dict[str, str]]:
+        """
         Парсит HTML-страницу https://habr.com/ru/companies/ru_mts/articles/,
-        извлекает данные о статьях с помощью BeautifulSoup.
+        извлекает данные о последних статьях с помощью BeautifulSoup.
 
+        :param session: Сессия для выполнения HTTP-запросов.
         :returns:
             list[dict[str, str]]: Список словарей, где каждый словарь содержит:
                 - 'title' (str): Заголовок статьи.
                 - 'publish_time' (str): Время публикации в формате строки.
-                - 'url' (str): Относительный URL статьи (начинается с 'habr.com').
+                - 'url' (str): URL статьи.
         """
+        articles_amount = 5
+        url = 'https://habr.com/ru/companies/ru_mts/articles/'
+        headers = {"User-Agent": self.ua.random}
+        proxy, proxy_auth = await self._get_proxy()
+        try:
+            async with session.get(url, proxy=proxy, proxy_auth=proxy_auth, headers=headers) as response:
+                soup = await self._get_soup(response)
+                latest_articles = []
+                for article in soup.find_all(class_="tm-articles-list__item", limit=articles_amount):
+                    publish_time = article.find("time").string
+                    title_with_link = article.find(class_="tm-title__link")
+                    title = title_with_link.string
+                    article_url = 'https://habr.com' + title_with_link["href"]
+                    latest_articles.append({
+                        'title': title,
+                        'publish_time': publish_time,
+                        'url': article_url
+                    })
+                logging.info("Успешно спарсили последние статьи с Хабра.")
+                return latest_articles
+        except (TimeoutError, CancelledError):
+            logging.warning("Ошибка или таймаут при получении списка последних статей.")
 
-        page = requests.get('https://habr.com/ru/companies/ru_mts/articles/')
-        bs = BeautifulSoup(page.text, 'html.parser')
-
-        latest_articles = []
-        for article in bs.find_all(class_="tm-articles-list__item", limit=5):
-            publish_time = article.find("time").string
-            title_with_link = article.find(class_="tm-title__link")
-            title = title_with_link.string
-            url = 'habr.com' + title_with_link["href"]
-            latest_articles.append({'title': title, 'publish_time': publish_time, 'url': url})
-
-        return latest_articles
-    
 
 PARSER_SETTINGS = {
     "exceptions": None,  # Список исключений, при которых следует повторять запросы (например, ConnectionTimeoutError).
