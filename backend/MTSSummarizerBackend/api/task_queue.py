@@ -1,5 +1,6 @@
 from rest_framework.exceptions import APIException, status
 from asyncio import Queue, create_task, get_event_loop
+from aiohttp import ClientSession
 from typing import Callable
 
 
@@ -10,7 +11,14 @@ class TaskQueue:
         create_task(self.__worker(self.__get_summary))
 
     async def __get_summary(self, article_text: str, comments_text: str) -> tuple[str, str]:
-        return "article summary", "comments_summary"
+        async with ClientSession() as session:
+            json = {
+                "article_text": article_text, 
+                "comments_text": comments_text
+            }
+            async with session.post("http://localhost:8080/api/v1/summarize/", json=json) as responce:
+                result = await responce.json()
+                return result['article_summary'], result['comments_summary']
 
     async def __worker(self, function: Callable):
         while True:
