@@ -5,11 +5,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from asgiref.sync import sync_to_async
-from django.shortcuts import get_object_or_404, get_list_or_404
-from .serializers import (ArticleDataBaseSerializer, ArticleSerialiser,
-                          ArticleListSerializer, ArticleLatestSerializer)
+from django.shortcuts import get_object_or_404
+from .serializers import (ArticleDataBaseSerializer, ArticleSerialiser, ArticleListSerializer, 
+                          ArticleLatestSerializer, QueueStatusSerializer)
 from .models import Article
 from .habr_parser import parser
+from .task_queue import task_queue
 
 
 class ArticleCreateView(APIView):
@@ -87,6 +88,18 @@ class ArticleLatestListView(APIView):
     async def get(self, request, *args, **kwargs):
         articles = await parser.parsing_latest_articles()
         serializer = self.serializer_class(data=articles, many=True)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class QueueStatusView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = QueueStatusSerializer
+
+    async def get(self, request, *args, **kwargs):
+        is_available = await task_queue.is_available()
+        serializer = self.serializer_class(data={"is_available": is_available})
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

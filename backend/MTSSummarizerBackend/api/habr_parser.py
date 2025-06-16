@@ -1,6 +1,5 @@
 import logging
 import random
-import requests
 import aiohttp
 from asyncio.exceptions import TimeoutError, CancelledError
 from aiohttp_retry import RetryClient, ExponentialRetry
