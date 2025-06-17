@@ -17,21 +17,29 @@
 </ol>
 
 ## Технологический стек
-- Основной сервис:
--- Django
--- DRF в связке с ADRF - асинхнонная работа с ORM
--- asyncio и aiohttp - асинхронная отправка запросов и парсинг статей
--- BeautifulSoup - обработка статей
--- Djoser в связке с djangorestframework_simplejw - авторизация и аутентификация
--- Gunicorn в связке с Unicorn - запуск сервера
--- drf-yags - документация
-- API для обращения к моделям суммаризации:
--- FastAPI
--- OpenAI - обращение к Deepseeek
--- Trasnsftormers, pytorch - модель кластеризации
--- Uvicorn - запуск сервера
-- База Данных:
--- Postgres
+<ul>
+<li> Основной сервис:
+<ul>
+<li>Django
+<li>DRF в связке с ADRF - асинхнонная работа с ORM
+<li>asyncio и aiohttp - асинхронная отправка запросов и парсинг статей
+<li>BeautifulSoup - обработка статей
+<li>Djoser в связке с djangorestframework_simplejw - авторизация и аутентификация
+<li>Gunicorn в связке с Unicorn - запуск сервера
+<li>drf-yags - документация
+</ul>
+<li>API для обращения к моделям суммаризации:
+<ul>
+<li>FastAPI
+<li>OpenAI - обращение к Deepseeek
+<li>trasnsftormers, pytorch - модель кластеризации
+<<li>Uvicorn - запуск сервера
+</ul>
+<li>База Данных:
+<ul>
+<li>Postgres
+</ul>
+</ul>
 
 ## Структура проекта
 ```
