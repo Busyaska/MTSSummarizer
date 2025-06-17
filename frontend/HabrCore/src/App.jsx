@@ -1,71 +1,76 @@
-import React, { useState, createContext, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import EmailConfirmationPage from './pages/EmailConfirmationPage'
-import LeaveReviewPage from './pages/LeaveReviewPage'
-import ErrorPage from './pages/ErrorPage'
-import Sidebar from './components/Sidebar'
-import Header from './components/Header'
-import './styles.css'
-
-/**
- * ThemeContext
- * предоставляет текущую тему (light/dark)
- * и функцию toggleTheme для переключения темы.
- */
-export const ThemeContext = createContext()
-
-/**
- * App — корневой компонент приложения.
- * Отвечает за
- *  смену темы интерфейса
- *  отображение боковой панели с историей запросов
- *  маршрутизацию между страницами
- */
+// src/App.js (обновлённый)
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import EmailConfirmationPage from './pages/EmailConfirmationPage';
+import LeaveReviewPage from './pages/LeaveReviewPage';
+import ErrorPage from './pages/ErrorPage';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import PrivateRoute from './components/PrivateRoute';
+import './styles.css';
+import AdminPage from './pages/AdminPage';
+import AdminRoute from './components/AdminRoute';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 export default function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true) //боковая панель
-  const [theme, setTheme] = useState('light')              //тема
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    return savedTheme;
+  });
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme) //подключаем стили  из css файла для темы
-  }, [theme])
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light')) //переключаем темы
-  }
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+return (
+    <AuthProvider>
+      <ToastContainer position="top-right" autoClose={5000} />
       <Router>
         <div className="app-container">
-          {/* Боковая панель с историей запросов и ссылкой «Оставить отзыв» */}
           {isSidebarOpen && <Sidebar />}
+          
           <div className="main-area">
-            {/* Заголовок с логотипом, кнопками */}
-            <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-
-            {/* переключение страниц */}
+            <Header 
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+              onToggleTheme={toggleTheme}
+              themeMode={theme}
+            />
+            
             <main className="content">
               <Routes>
-                {/* Главная страница анализа статьи */}
-                <Route path="/" element={<HomePage />} />
-                {/* страница входа */}
+                <Route path="/" element={
+                  <PrivateRoute>
+                    <HomePage />
+                  </PrivateRoute>
+                } />
                 <Route path="/login" element={<LoginPage />} />
-                {/* страница регистрации */}
                 <Route path="/register" element={<RegisterPage />} />
-                {/* Подтверждение почты */}
                 <Route path="/confirm-email" element={<EmailConfirmationPage />} />
-                {/* Форма с отзывом на сервис */}
                 <Route path="/leave-review" element={<LeaveReviewPage />} />
-                {/* старица ошибки 404 */}
+                
+                {/* Админский роут */}
+                <Route path="/admin" element={
+                  <AdminRoute>
+                    <AdminPage />
+                  </AdminRoute>
+                } />
+                
                 <Route path="*" element={<ErrorPage />} />
               </Routes>
             </main>
           </div>
         </div>
       </Router>
-    </ThemeContext.Provider>
-  )
+    </AuthProvider>
+  );
 }
