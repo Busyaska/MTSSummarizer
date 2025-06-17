@@ -1,15 +1,20 @@
 # Backend часть сервера суммаризации статей
 
 ## Запуск
-<p>
+
+<ol>
+<li><b>Заполнить <code>.env</code> файл</b></li>
+<li>
 <b>Django:</b><br>
 Находясь в папке MTSSummarizerBackend, выполнить:<br>
 <code>uvicorn MTSSummarizerBackend.asgi:application --host 0.0.0.0 --port 8000</code>
-</p>
+</li>
+<li>
 <b>FasrAPI:</b><br>
 Находясь в папке ModelsAPI, выполнить:<br>
 <code>uvicorn summary_models_api:app --host 0.0.0.0 --port 8080</code>
-</p>
+</li>
+</ol>
 
 ## Технологический стек
 - Основной сервис:
