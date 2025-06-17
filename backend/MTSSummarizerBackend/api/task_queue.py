@@ -1,0 +1,52 @@
+from rest_framework.exceptions import APIException, status
+from asyncio import Queue, create_task, get_event_loop
+from aiohttp import ClientSession
+from typing import Callable
+
+
+class TaskQueue:
+
+    def __init__(self):
+        self.__queue = Queue(maxsize=5)
+        self.__started = False
+
+    async def start(self):
+        if not self.__started:
+            create_task(self.__worker(self.__get_summary))
+            self.__started = True
+
+    async def __get_summary(self, article_text: str, comments_text: str) -> tuple[str, str]:
+        async with ClientSession() as session:
+            json = {
+                "article_text": article_text, 
+                "comments_text": comments_text
+            }
+            async with session.post("http://models-api:8080/api/v1/summarize/", json=json) as responce:
+                result = await responce.json()
+                return result['article_summary'], result['comments_summary']
+
+    async def __worker(self, function: Callable):
+        while True:
+            article_text, comments_text, future = await self.__queue.get()
+            try:
+                result = await function(article_text, comments_text)
+                future.set_result(result)
+            except Exception as e:
+                future.set_exception(e)
+            finally:
+                self.__queue.task_done()
+
+    async def is_available(self) -> bool:
+        return not self.__queue.full()
+
+    async def process_task(self, article_text: str, comments_text: str) -> tuple[str, str]:
+        future = get_event_loop().create_future()
+        await self.__queue.put((article_text, comments_text, future))
+        try:
+            result = await future
+            return result
+        except Exception as e:
+            raise APIException(f"Program got some issues during summary: {e}", code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+task_queue = TaskQueue()
