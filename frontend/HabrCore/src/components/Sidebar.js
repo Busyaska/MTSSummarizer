@@ -1,45 +1,72 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-/**
- * historyByDay — пример данных истории запросов
- */
-const historyByDay = {
-  'Сегодня': ['Запрос A', 'Запрос B'],
-  'Вчера':  ['Запрос C']
-};
-
-/**
- * Sidebar — боковая панель приложения.
- * Использует:
- *  .sidebar        — контейнер панели
- *  .history-group  — контейнер группы запросов
- *  .link-primary   — стили для ссылки «Оставить отзыв»
- */
 export default function Sidebar() {
+  const { isAuthenticated, history } = useAuth();
+
+  // Группировка истории по дням
+  const groupHistoryByDay = () => {
+    const grouped = {};
+    
+    history.forEach(item => {
+      const date = new Date(item.date);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      let dayLabel;
+      if (date.toDateString() === today.toDateString()) {
+        dayLabel = 'Сегодня';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        dayLabel = 'Вчера';
+      } else {
+        dayLabel = date.toLocaleDateString('ru-RU');
+      }
+      
+      if (!grouped[dayLabel]) {
+        grouped[dayLabel] = [];
+      }
+      
+      grouped[dayLabel].push(item.request);
+    });
+    
+    return grouped;
+  };
+
+    const historyByDay = groupHistoryByDay();
+
   return (
     <aside className="sidebar">
       <div>
-        {/* Заголовок раздела истории */}
         <h3>История запросов</h3>
         <hr />
-
-        {/* Перебираем ключи и значения объекта historyByDay */}
-        {Object.entries(historyByDay).map(([day, items]) => (
-          <div key={day} className="history-group">
-            {/* Название группы (день) */}
-            <strong>{day}</strong>
-            {/* Список запросов этого дня */}
-            <ul>
-              {items.map(req => (
-                <li key={req}>{req}</li>
-              ))}
-            </ul>
+        
+        {isAuthenticated ? (
+          Object.keys(historyByDay).length > 0 ? (
+            Object.entries(historyByDay).map(([day, items]) => (
+              <div key={day} className="history-group">
+                <strong>{day}</strong>
+                <ul>
+                  {items.map((req, idx) => (
+                    <li key={idx}>{req}</li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          ) : (
+            <p>История запросов пуста</p>
+          )
+        ) : (
+          <div className="auth-prompt">
+            <p>Войдите, чтобы видеть историю запросов</p>
+            <Link to="/login" className="link-primary">
+              Войти
+            </Link>
           </div>
-        ))}
+        )}
       </div>
 
-      {/* Ссылка на страницу с формой */}
       <Link to="/leave-review" className="link-primary">
         Оставить отзыв
       </Link>
