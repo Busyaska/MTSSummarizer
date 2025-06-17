@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../styles.css';
-
+import api from '../services/api';
 /**
  * LeaveReviewPage — страница «Оставить отзыв» по сервису.
  * Пользователь вводит свои данные и текст отзыва, который затем отправляется на бэк
@@ -31,23 +31,31 @@ export default function LeaveReviewPage() {
   /**
     * handleSubmit — обработчик отправки формы.
     */
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    // здесь должна быть логика отправки данных на сервер
-    alert('Спасибо, отзыв отправлен');
-    // очистка полей после отправки
-    setForm({
-      lastName: '',
-      firstName: '',
-      phone: '',
-      email: '',
-      subject: '',
-      message: ''
-    });
+    
+    try {
+      // Отправка отзыва
+      await api.submitReview(form);
+      alert('Спасибо, отзыв отправлен');
+      
+      // Очистка формы
+      setForm({
+        lastName: '',
+        firstName: '',
+        phone: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error) {
+      alert('Ошибка при отправке отзыва');
+      console.error(error);
+    }
   };
 
   return (
-    <div className="feedback-container">
+    <div className="comment">
       {/* заголовок страницы */}
       <h2>Оставить отзыв</h2>
 

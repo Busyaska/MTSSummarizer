@@ -1,31 +1,31 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import '../styles.css';
 
-/**
- * EmailConfirmationPage — страница ввода кода подтверждения почты.
- * Используется после регистрации для верификации email пользователя.
- */
 export default function EmailConfirmationPage() {
-  // Локальное состояние для хранения введённого кода
   const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const { confirmEmail } = useAuth();
+  const navigate = useNavigate();
 
-  /**
-   * handleConfirm — обработчик нажатия кнопки «Подтвердить».
-   * здесь будет запрос к бэку для проверки кода.
-   */
-  const handleConfirm = () => {
-    alert(`Код подтверждения: ${code}`);
-    setCode(''); // очистить поле после подтверждения
+  const handleConfirm = async () => {
+    try {
+      await confirmEmail(code);
+      setMessage('Email успешно подтвержден!');
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (error) {
+      setError(error.message || 'Ошибка подтверждения');
+    }
   };
 
   return (
     <div className="page-center">
-      {/* заголовок страницы */}
       <h2>Подтверждение почты</h2>
-      {/* инструкция для пользователя */}
+      {error && <div className="error-message">{error}</div>}
+      {message && <div className="success-message">{message}</div>}
       <p>Введите код, отправленный на ваш email</p>
-
-      {/* поле ввода кода */}
       <input
         type="text"
         placeholder="Код подтверждения"
@@ -34,8 +34,6 @@ export default function EmailConfirmationPage() {
         onChange={e => setCode(e.target.value)}
         aria-label="Код подтверждения"
       />
-
-      {/*кнопка отправки кода на проверку */}
       <button className="btn-primary" onClick={handleConfirm}>
         Подтвердить
       </button>
