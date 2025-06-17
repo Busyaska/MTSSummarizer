@@ -29,6 +29,7 @@ multidict==6.4.3
 oauthlib==3.2.2
 packaging==25.0
 propcache==0.3.1
+psycopg2-binary==2.9.10
 pycparser==2.22
 PyJWT==2.9.0
 python-dotenv==1.1.0

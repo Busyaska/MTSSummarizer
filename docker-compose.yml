@@ -1,0 +1,35 @@
+volumes:
+  db-data:
+  static:
+
+services:
+  postgres-db:
+    image: postgres:17.1
+    env_file:
+      - ./backend/.env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  mts-summarizer:
+    build: ./backend/MTSSummarizerBackend/
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres-db
+    volumes:
+      - static:/backend_static
+
+  models-api:
+    build: ./backend/ModelsAPI/
+    env_file:
+      - ./backend/.env
+  gateway:
+    build: ./gateway/
+    ports:
+      - 80:80
+    volumes:
+      - static:/staticfiles
+    depends_on:
+      - postgres-db
+      - mts-summarizer
+      - models-api

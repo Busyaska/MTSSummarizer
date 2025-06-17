@@ -85,8 +85,12 @@ ASGI_APPLICATION = 'MTSSummarizerBackend.asgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': getenv('POSTGRES_NAME', 'postgres'),
+        'USER':  getenv('POSTGRES_USER', 'masteruser'),
+        'PASSWORD':  getenv('POSTGRES_PASSWORD', '12345678'),
+        'HOST':  getenv('POSTGRES_HOST', ''),
+        'PORT':  getenv('POSTGRES_PORT', '5432')
     }
 }
 
@@ -125,7 +129,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+STATIC_ROOT = '/backend_static/static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

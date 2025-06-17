@@ -8,7 +8,12 @@ class TaskQueue:
 
     def __init__(self):
         self.__queue = Queue(maxsize=5)
-        create_task(self.__worker(self.__get_summary))
+        self.__started = False
+
+    async def start(self):
+        if not self.__started:
+            create_task(self.__worker(self.__get_summary))
+            self.__started = True
 
     async def __get_summary(self, article_text: str, comments_text: str) -> tuple[str, str]:
         async with ClientSession() as session:
@@ -16,7 +21,7 @@ class TaskQueue:
                 "article_text": article_text, 
                 "comments_text": comments_text
             }
-            async with session.post("http://localhost:8080/api/v1/summarize/", json=json) as responce:
+            async with session.post("http://models-api:8080/api/v1/summarize/", json=json) as responce:
                 result = await responce.json()
                 return result['article_summary'], result['comments_summary']
 
