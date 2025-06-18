@@ -39,7 +39,18 @@ project-root/
 │   │ 
 │   ├── components/            # UI-компоненты
 │   │   ├── Header.js          # Шапка приложения
-│   │   └── Sidebar.js         # Боковая панель
+│   │   ├── Sidebar.js         # Боковая панель
+│   │   ├── AdminRoute.js      # Компонент для защиты маршрутов для админа
+│   │   ├── CommentChart.js    # График или визуализация комментариев
+│   │   ├── PrivateRoute.js    # Компонент для защиты маршрутов, доступных только авторизованным пользователям
+│   │   ├── RecentArticles.js  # Виджеты последних статей
+│   │   └── UserMenu.jsx       # Меню пользователя с функциями профиля и выхода
+│   │
+│   ├── services/              # Взаимодействие с сервером
+│   │   └── api.js             # Функции запросов
+│   │
+│   ├── contexts/              # # React Context для глобального состояния и логики
+│   │   └── AuthContext.js     # Авторизация
 │   │ 
 │   └── pages/                 # Страницы приложения
 │       ├── HomePage.js        # Главная
@@ -47,7 +58,12 @@ project-root/
 │       ├── RegisterPage.js    # Регистрация
 │       ├── EmailConfirmationPage.js # Подтверждение почты
 │       ├── LeaveReviewPage.js # Оставить отзыв
-│       └── ErrorPage.js       # Страница 404
+│       ├── ErrorPage.js       # Страница 404
+│       ├── AdminPage.js       # Панель админа
+│       ├── AnalyticsPanel.jsx # Панель с аналитическими данными
+│       ├── BackupPanel.jsx    # Резервное копирование
+│       ├── ContentPanel.jsx   # Панель с отзывами от пользователей
+│       └── SEOPanel.jsx       # Панель для настройки SEO параметров сайта
 └── README.md                  # Документация
 ```
 
