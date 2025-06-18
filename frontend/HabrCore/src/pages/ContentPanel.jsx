@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 
+// Панель отображения и управления обратной связью от пользователей
 export default function ContentPanel() {
-  const [feedback, setFeedback] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
+  const [feedback, setFeedback] = useState([]); // список обращений
+  const [loading, setLoading] = useState(true); // индикатор загрузки
+  const [statusFilter, setStatusFilter] = useState('all'); // фильтр по статусу
+  const [currentPage, setCurrentPage] = useState(1); // текущая страница
+  const [totalPages, setTotalPages] = useState(1); // всего страниц
+  const [itemsPerPage, setItemsPerPage] = useState(10); // элементов на странице
+  const [totalItems, setTotalItems] = useState(0); // общее количество обращений
 
-  // Загрузка обратной связи
+  // Загрузка списка обращений
   const loadFeedback = async () => {
     try {
       setLoading(true);
@@ -19,7 +20,8 @@ export default function ContentPanel() {
         itemsPerPage, 
         statusFilter === 'all' ? '' : statusFilter
       );
-      
+
+      //Сохраняем данные из ответа
       setFeedback(response.data);
       setTotalItems(response.total);
       setTotalPages(response.totalPages);
@@ -35,7 +37,7 @@ export default function ContentPanel() {
     loadFeedback();
   }, [currentPage, itemsPerPage, statusFilter]);
 
-  // Обновление статуса обращения
+  // Обновление статуса конкретного обращения
   const updateFeedbackStatus = async (id, status) => {
     try {
       await api.admin.updateFeedbackStatus(id, status);
@@ -48,11 +50,12 @@ export default function ContentPanel() {
     }
   };
 
-  // Удаление обращения
+  // Удаление обращения по ID
   const deleteFeedback = async (id) => {
     if (window.confirm('Вы уверены, что хотите удалить это обращение?')) {
       try {
         await api.admin.deleteFeedback(id);
+        // Удаляем из локального состояния
         setFeedback(feedback.filter(item => item.id !== id));
       } catch (error) {
         console.error('Ошибка удаления обращения:', error);
@@ -71,6 +74,7 @@ export default function ContentPanel() {
     }
   };
 
+  // Список возможных статусов
   const statusOptions = [
     { value: 'new', label: 'Новый' },
     { value: 'in_progress', label: 'В обработке' },
@@ -81,7 +85,8 @@ export default function ContentPanel() {
   return (
     <div className="feedback-panel">
       <h2>Обратная связь от пользователей</h2>
-      
+
+      {/* Панель фильтрации */}
       <div className="admin-toolbar">
         <div className="filter-group">
           <label>Фильтр по статусу:</label>
@@ -89,7 +94,7 @@ export default function ContentPanel() {
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
-              setCurrentPage(1);
+              setCurrentPage(1); // сбрасываем на первую страницу при смене фильтра
             }}
             className="admin-input"
           >
@@ -103,10 +108,12 @@ export default function ContentPanel() {
         </div>
       </div>
 
+      {/* Отображение состояния загрузки */}
       {loading ? (
         <div className="loader"></div>
       ) : (
         <>
+          {/* Таблица с отзывами */}
           <table className="admin-table">
             <thead>
               <tr>
@@ -132,7 +139,7 @@ export default function ContentPanel() {
                       {item.message.length > 100 && (
                         <button 
                           className="btn-text"
-                          onClick={() => alert(item.message)}
+                          onClick={() => alert(item.message)} // Полный текст сообщения
                         >
                           Показать полностью
                         </button>
@@ -144,6 +151,7 @@ export default function ContentPanel() {
                       </span>
                     </td>
                     <td className="actions-cell">
+                      {/* Изменение статуса */}
                       <select
                         value={item.status}
                         onChange={(e) => updateFeedbackStatus(item.id, e.target.value)}
@@ -155,6 +163,8 @@ export default function ContentPanel() {
                           </option>
                         ))}
                       </select>
+
+                      {/* Удаление обращения */}
                       <button 
                         className="btn-small btn-danger"
                         onClick={() => deleteFeedback(item.id)}
@@ -165,6 +175,7 @@ export default function ContentPanel() {
                   </tr>
                 ))
               ) : (
+                // Если обращений нет
                 <tr>
                   <td colSpan="7" className="no-feedback">
                     Обращений не найдено
@@ -173,7 +184,7 @@ export default function ContentPanel() {
               )}
             </tbody>
           </table>
-          
+
           {/* Пагинация */}
           <div className="pagination">
             <button 
@@ -182,21 +193,22 @@ export default function ContentPanel() {
             >
               &larr; Назад
             </button>
-            
+
             <span>Страница {currentPage} из {totalPages}</span>
-            
+
             <button 
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage(p => p + 1)}
             >
               Вперед &rarr;
             </button>
-            
+
+            {/* Выбор количества отображаемых элементов */}
             <select
               value={itemsPerPage}
               onChange={(e) => {
                 setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
+                setCurrentPage(1); // сбрасываем страницу при смене лимита
               }}
               className="admin-input"
             >
@@ -204,7 +216,7 @@ export default function ContentPanel() {
               <option value={25}>25 на странице</option>
               <option value={50}>50 на странице</option>
             </select>
-            
+
             <span>Всего: {totalItems} обращений</span>
           </div>
         </>

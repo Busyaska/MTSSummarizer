@@ -1,43 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
+import '../styles.css';
 
+/**
+ * Компонент BackupPanel - панель управления резервными копиями
+ * Просмотр списка существующих резервных копий
+ * Создание новых
+ * Восстанавливать систему из резервной копии
+ * Скачивать резервные копии
+ */
 const BackupPanel = () => {
-  const [backups, setBackups] = useState([
-    { id: 1, date: '2025-06-15 14:30:00', size: '45 MB', type: 'Полный' },
-    { id: 2, date: '2025-06-10 09:15:00', size: '32 MB', type: 'Инкрементальный' },
-  ]);
-  
+  const [backups, setBackups] = useState([]);
   const [backupType, setBackupType] = useState('full');
   const [schedule, setSchedule] = useState('daily');
-  
-  const createBackup = () => {
-    const newBackup = {
-      id: backups.length + 1,
-      date: new Date().toLocaleString(),
-      size: `${Math.floor(Math.random() * 20) + 30} MB`,
-      type: backupType === 'full' ? 'Полный' : 'Инкрементальный'
-    };
-    
-    setBackups([newBackup, ...backups]);
-    alert(`Резервная копия создана: ${newBackup.type}`);
-  };
-  
-  const restoreBackup = (id) => {
-    const backup = backups.find(b => b.id === id);
-    if (backup) {
-      if (window.confirm(`Вы уверены, что хотите восстановить систему из резервной копии от ${backup.date}?`)) {
-        alert(`Система восстановлена из резервной копии от ${backup.date}`);
+
+  /**
+   * Загружает список резервных копий с сервера через API
+   */
+  useEffect(() => {
+    const fetchBackups = async () => {
+      try {
+        const data = await api.admin.getBackups();
+        setBackups(data);
+      } catch (error) {
+        console.error('Ошибка загрузки резервных копий:', error);
       }
+    };
+
+    fetchBackups();
+  }, []);
+
+  //Создает резервную копию выбранного типа
+  const createBackup = async () => {
+    try {
+      const response = await api.admin.createBackup(backupType);
+      setBackups(prev => [response, ...prev]);
+      alert(`Резервная копия создана: ${response.type}`);
+    } catch (error) {
+      console.error('Ошибка при создании резервной копии:', error);
+      alert('Не удалось создать резервную копию.');
+    }
+  };
+
+  // Восстанавливает систему из выбранной резервной копии.
+  const restoreBackup = async (id) => {
+    try {
+      if (window.confirm('Вы уверены, что хотите восстановить резервную копию?')) {
+        await api.admin.restoreBackup(id);
+        alert('Восстановление завершено.');
+      }
+    } catch (error) {
+      console.error('Ошибка восстановления:', error);
+      alert('Не удалось восстановить систему.');
     }
   };
 
   return (
     <div className="backup-panel">
       <h2>Резервное копирование</h2>
-      
+
+      {/* Панель управления*/}
       <div className="backup-controls">
-        <div className="form-group">
-          <label>Тип резервной копии:</label>
+        <div className="form-group" style={{ marginBottom: '0px' }}>
+          <label htmlFor="backupType">Тип резервной копии:</label>
           <select
+            id="backupType"
+            className="admin-input"
             value={backupType}
             onChange={(e) => setBackupType(e.target.value)}
           >
@@ -45,10 +73,12 @@ const BackupPanel = () => {
             <option value="incremental">Инкрементальная</option>
           </select>
         </div>
-        
-        <div className="form-group">
-          <label>Расписание:</label>
+
+        <div className="form-group" style={{ marginBottom: '0px' }}>
+          <label htmlFor="schedule">Расписание:</label>
           <select
+            id="schedule"
+            className="admin-input"
             value={schedule}
             onChange={(e) => setSchedule(e.target.value)}
           >
@@ -58,13 +88,15 @@ const BackupPanel = () => {
             <option value="monthly">Ежемесячно</option>
           </select>
         </div>
-        
-        <button className="btn-primary" onClick={createBackup}>
+
+        <button className="btn-primary btn-fullwidth" onClick={createBackup}>
           Создать резервную копию
         </button>
       </div>
-      
+
       <h3>Существующие резервные копии</h3>
+
+      {/* Таблица с существующими резервными копиями */}
       <table className="admin-table">
         <thead>
           <tr>
@@ -81,15 +113,22 @@ const BackupPanel = () => {
               <td>{backup.type}</td>
               <td>{backup.size}</td>
               <td>
-                <button 
+                {/* Кнопка для восстановления резервной копии */}
+                <button
                   className="btn-small btn-success"
                   onClick={() => restoreBackup(backup.id)}
                 >
                   Восстановить
                 </button>
-                <button className="btn-small">
+                {/* Ссылка для скачивания резервной копии */}
+                <a
+                  className="btn-small"
+                  href={`${api}/admin/backup/${backup.id}/download`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Скачать
-                </button>
+                </a>
               </td>
             </tr>
           ))}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles.css';
 import api from '../services/api';
 /**
- * LeaveReviewPage — страница «Оставить отзыв» по сервису.
+ * LeaveReviewPage - страница «Оставить отзыв» по сервису.
  * Пользователь вводит свои данные и текст отзыва, который затем отправляется на бэк
  */
 export default function LeaveReviewPage() {
@@ -17,8 +17,7 @@ export default function LeaveReviewPage() {
   });
 
   /**
-   * handleChange — общий обработчик изменений в любом поле формы.
-   * обновляет соответствующее свойство в состоянии form.
+   * handleChange - общий обработчик изменений в любом поле формы.
    * @param {React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>} e
    * когда пользователь что-то вводит в <input> или <textarea>
    * и изменяется его значение, React вызывает handleChange, передавая ему объект события e (типа ChangeEvent).

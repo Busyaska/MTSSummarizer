@@ -11,131 +11,51 @@ import { useAuth } from '../contexts/AuthContext';
 const HomePage = () => {
   const { isAuthenticated, addToHistory } = useAuth();
   const navigate = useNavigate();
-  
-  const [url, setUrl] = useState('');
-  const [summary, setSummary] = useState('');
-  const [displayedSummary, setDisplayedSummary] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [metrics, setMetrics] = useState({ 
-    bleu: 0, 
-    rouge: 0, 
-    bertScore: 0, 
-    harim: 0 
+
+  // Состояния компонента
+  const [url, setUrl] = useState(''); // URL статьи
+  const [summary, setSummary] = useState(''); // Полный результат суммаризации
+  const [displayedSummary, setDisplayedSummary] = useState(''); // Постепенно отображаемый текст
+  const [loading, setLoading] = useState(false); // Индикатор загрузки
+  const [error, setError] = useState(''); // Сообщение об ошибке
+  const [metrics, setMetrics] = useState({ // Метрики качества суммаризации
+    bleu: 0,
+    rouge: 0,
+    bertScore: 0,
+    harim: 0
   });
 
-  const [clusters, setClusters] = useState({ 
-    positive: 0, 
+  const [clusters, setClusters] = useState({ // Анализ тональности комментариев
+    positive: 0,
     neutral: 0,
-    negative: 0 
+    negative: 0
   });
-  
-  const [keywords, setKeywords] = useState([]);
-  const [feedbackPrompt, setFeedbackPrompt] = useState('');
-  const [feedbackResponse, setFeedbackResponse] = useState('');
-  const [recentArticles, setRecentArticles] = useState([]);
+
+  const [keywords, setKeywords] = useState([]); // Ключевые слова из статьи
+  const [feedbackPrompt, setFeedbackPrompt] = useState(''); // Запрос пользователя на фильтрацию комментариев
+  const [feedbackResponse, setFeedbackResponse] = useState(''); // Ответ на запрос
+  const [recentArticles, setRecentArticles] = useState([]); // Последние проанализированные статьи
 
   useEffect(() => {
-    // Мок данные для последних статей
-    const articlesFromParser = [
-      {
-        id: 1,
-        title: 'Новые алгоритмы NLP в 2024',
-        url: 'https://habr.com/ru/articles/12345/',
-        date: '2025-04-15T14:30:00Z'
-      },
-      {
-        id: 2,
-        title: 'Этика искусственного интеллекта',
-        url: 'https://habr.com/ru/articles/12346/',
-        date: '2025-06-14T09:15:00Z'
-      },
-      {
-        id: 3,
-        title: 'Анализ комментариев на Habr',
-        url: 'https://habr.com/ru/articles/12347/',
-        date: '2025-05-13T18:45:00Z'
-      },
-      {
-        id: 4,
-        title: 'Машинное обучение для новичков',
-        url: 'https://habr.com/ru/articles/12348/',
-        date: '2025-05-15T11:20:00Z'
-      },
-      {
-        id: 5,
-        title: 'Современные фреймворки JavaScript',
-        url: 'https://habr.com/ru/articles/12349/',
-        date: '2022-02-12T16:00:00Z'
-      }
-    ];
-    
-    setRecentArticles(articlesFromParser);
-    
-    // Здесь будет реальный вызов API для получения данных
-    /*
     api.getLatestArticles()
       .then(data => setRecentArticles(data))
-      .catch(error => console.error('Error fetching articles:', error));
-    */
+      .catch(error => console.error('Ошибка загрузки статей:', error));
   }, []);
 
-  const startAnalysis = async () => {
-    try {
-      // Отправка запроса на анализ
-      const response = await api.createAnalysis(url);
-      
-      // Получение результатов (с периодическим опросом)
-      const pollResults = async () => {
-        try {
-          const results = await api.getAnalysisResults(response.articleId);
-          
-          if (results.status === 'completed') {
-            // Обработка результатов
-            setSummary(results.summary);
-            setMetrics(results.metrics);
-            setClusters(results.clusters);
-            setKeywords(results.keywords);
-            
-            // Добавление в историю
-            if (isAuthenticated) {
-              addToHistory(url);
-            }
-          } else {
-            // Повторная проверка через 5 секунд
-            setTimeout(pollResults, 5000);
-          }
-        } catch (error) {
-          console.error('Error polling results:', error);
-          setError('Ошибка получения результатов анализа');
-          setLoading(false);
-        }
-      };
-      
-      pollResults();
-    } catch (error) {
-      console.error('Error starting analysis:', error);
-      setError('Не удалось начать анализ. Пожалуйста, попробуйте позже.');
-      setLoading(false);
-    }
-  };
-
+  // Обработка кнопки "Проанализировать"
   const handleAnalyze = async () => {
     if (!url.trim()) return;
-
     setLoading(true);
     setSummary('');
     setFeedbackResponse('');
     setError('');
 
     try {
-      // Проверка статуса очереди
+      // Проверка доступности очереди
       const status = await api.checkQueueStatus();
-      
       if (!status.is_available) {
-        setError('Очередь заполнена. Пожалуйста, подождите...');
-        
-        // Периодическая проверка каждые 30 секунд
+        setError('Очередь заполнена. Подождите...');
+        // Повторная проверка доступности через интервал
         const intervalId = setInterval(async () => {
           try {
             const newStatus = await api.checkQueueStatus();
@@ -145,25 +65,58 @@ const HomePage = () => {
               await startAnalysis();
             }
           } catch (error) {
-            console.error('Error checking queue status:', error);
-            setError('Ошибка проверки статуса очереди');
+            console.error('Ошибка очереди:', error);
+            setError('Ошибка очереди. Попробуйте позже.');
             clearInterval(intervalId);
             setLoading(false);
           }
         }, 30000);
-        
         return;
       }
-      
       await startAnalysis();
     } catch (error) {
-      console.error('Analysis error:', error);
-      setError('Не удалось начать анализ. Пожалуйста, попробуйте позже.');
+      console.error('Ошибка анализа:', error);
+      setError('Ошибка запуска анализа.');
       setLoading(false);
     }
   };
 
-  // Эффект для анимации печатания текста
+  // Запуск анализа статьи
+  const startAnalysis = async () => {
+    try {
+      const response = await api.createAnalysis(url); // Создание задачи анализа
+      const articleId = response.articleId;
+
+      // Ожидание завершения анализа и получение результатов
+      const pollResults = async () => {
+        try {
+          const results = await api.getAnalysisResults(articleId);
+          if (results.status === 'completed') {
+            setSummary(results.summary);
+            setMetrics(results.metrics);
+            setClusters(results.clusters);
+            setKeywords(results.keywords);
+            if (isAuthenticated) {
+              addToHistory(url); // Сохранение в историю, если пользователь авторизован
+            }
+            setLoading(false);
+          } else {
+            setTimeout(pollResults, 5000); // Повтор через 5 секунд
+          }
+        } catch (error) {
+          console.error('Ошибка получения результатов:', error);
+          setError('Ошибка получения результатов.');
+          setLoading(false);
+        }
+      };
+      pollResults();
+    } catch (error) {
+      console.error('Ошибка старта анализа:', error);
+      setError('Ошибка запуска анализа.');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (summary && !loading) {
       let i = 0;
@@ -177,40 +130,32 @@ const HomePage = () => {
     }
   }, [summary, loading]);
 
+  // Обработка запроса от пользователя по тональности
   const handleFeedbackRequest = () => {
     if (!feedbackPrompt.trim()) return;
-    
+    const total = clusters.positive + clusters.neutral + clusters.negative;
     let response = '';
-    const totalComments = clusters.positive + clusters.neutral + clusters.negative;
-    
     if (feedbackPrompt.toLowerCase().includes('положительные')) {
-      response = `Показано ${clusters.positive} положительных комментариев (${Math.round((clusters.positive / totalComments) * 100)}%)`;
-    } 
-    else if (feedbackPrompt.toLowerCase().includes('отрицательные')) {
-      response = `Показано ${clusters.negative} отрицательных комментариев (${Math.round((clusters.negative / totalComments) * 100)}%)`;
+      response = `Положительных: ${clusters.positive} (${Math.round((clusters.positive / total) * 100)}%)`;
+    } else if (feedbackPrompt.toLowerCase().includes('отрицательные')) {
+      response = `Отрицательных: ${clusters.negative} (${Math.round((clusters.negative / total) * 100)}%)`;
+    } else {
+      response = `Положительные: ${clusters.positive}\nНейтральные: ${clusters.neutral}\nОтрицательные: ${clusters.negative}`;
     }
-    else {
-      response = `Общий анализ комментариев:\n` +
-        `Положительные: ${clusters.positive}\n` +
-        `Нейтральные: ${clusters.neutral}\n` +
-        `Отрицательные: ${clusters.negative}`;
-    }
-    
     setFeedbackResponse(response);
   };
 
   return (
     <div className="home-page">
-      {/* Заголовок и описание сервиса */}
+      {/* Заголовок и краткое описание */}
       <div className="hero-section">
         <h1>MTC-Habr-Summarizer</h1>
-        <p>Интеллектуальный веб-сервис, созданный для пользователей, 
-          которые хотят быстро и эффективно получать информацию из 
-          статей и комментариев. Загрузите ссылку и получите резюме статьи.</p>
+        <p>Интеллектуальный веб-сервис для анализа статей и комментариев с Habr.</p>
       </div>
 
       {/* Основной блок анализа */}
       <div className="analysis-section">
+        {/* Поле ввода и кнопка анализа */}
         <div className="url-input-group">
           <input
             type="text"
@@ -229,79 +174,57 @@ const HomePage = () => {
           </button>
         </div>
 
-        {/* Отображение ошибок */}
-        {error && (
-          <div className="error-message" style={{ color: 'red', margin: '10px 0' }}>
-            {error}
-          </div>
-        )}
+        {/* Сообщения об ошибках и уведомления */}
+        {error && <div className="error-message" style={{ color: 'red' }}>{error}</div>}
 
-        {/* Уведомление о регистрации */}
         {!isAuthenticated && !loading && (
           <div className="auth-notice">
             <p>
-              Хотите сохранять историю запросов?{' '}
-              <button onClick={() => navigate('/register')} className="auth-link">
-                Зарегистрируйтесь
-              </button>
+              Хотите сохранять историю? <button onClick={() => navigate('/register')} className="auth-link">Зарегистрируйтесь</button>
             </p>
           </div>
         )}
 
-        {/* Индикатор загрузки */}
+        {/* Индикация процесса анализа */}
         {loading && (
           <div className="loading-indicator">
             <div className="loader"></div>
-            <p>Анализируем статью и комментарии...</p>
+            <p>Анализируем статью...</p>
           </div>
         )}
 
-        {/* Результаты анализа */}
+        {/* Блок результатов анализа */}
         {!loading && displayedSummary && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="results-container"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="results-container">
             {/* Суммаризация */}
             <div className="summary-block">
               <div className="summary-header">
                 <Sparkles className="icon-sparkle" />
                 <h3>Краткое содержание</h3>
-                  <div className="metrics">
-                    BLEU: {metrics.bleu.toFixed(2)} - 
-                    ROUGE: {metrics.rouge.toFixed(2)} - 
-                    BERT: {metrics.bertScore.toFixed(2)} - 
-                    HARIM: {metrics.harim.toFixed(2)}
-                  </div>
+                <div className="metrics">
+                  BLEU: {metrics.bleu.toFixed(2)} - ROUGE: {metrics.rouge.toFixed(2)} - BERT: {metrics.bertScore.toFixed(2)} - HARIM: {metrics.harim.toFixed(2)}
+                </div>
               </div>
               <div className="summary-content">
                 <pre>{displayedSummary}</pre>
               </div>
             </div>
 
-            {/* График комментариев */}
+            {/* График анализа комментариев */}
             <div className="comments-block">
               <h3>Анализ комментариев</h3>
-              <CommentChart 
-                positive={clusters.positive}
-                neutral={clusters.neutral}
-                negative={clusters.negative}
-              />
+              <CommentChart positive={clusters.positive} neutral={clusters.neutral} negative={clusters.negative} />
             </div>
 
             {/* Ключевые слова */}
             <div className="keywords-block">
               <h3>Ключевые слова</h3>
               <div className="keywords-list">
-                {keywords.map((word, index) => (
-                  <span key={index} className="keyword-tag">{word}</span>
-                ))}
+                {keywords.map((w, i) => <span key={i} className="keyword-tag">{w}</span>)}
               </div>
             </div>
 
-            {/* Фильтрация комментариев */}
+            {/* Фильтр по запросу пользователя */}
             <div className="feedback-block">
               <h3>Фильтр комментариев</h3>
               <div className="feedback-container">
@@ -312,12 +235,7 @@ const HomePage = () => {
                   onChange={(e) => setFeedbackPrompt(e.target.value)}
                   className="feedback-input"
                 />
-                <button
-                  onClick={handleFeedbackRequest}
-                  className="feedback-btn"
-                >
-                  Применить
-                </button>
+                <button onClick={handleFeedbackRequest} className="feedback-btn">Применить</button>
               </div>
               {feedbackResponse && (
                 <div className="feedback-response">
@@ -328,8 +246,8 @@ const HomePage = () => {
           </motion.div>
         )}
       </div>
-        
-      {/* Последние статьи */}
+
+      {/* Секция с последними статьями */}
       <div className="recent-articles-section">
         <h2>Последние статьи</h2>
         <RecentArticles articles={recentArticles} />

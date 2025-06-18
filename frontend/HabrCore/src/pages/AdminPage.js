@@ -5,25 +5,30 @@ import api from '../services/api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles.css';
-
-// Импорт новых компонентов
 import SEOPanel from './SEOPanel';
 import ContentPanel from './ContentPanel';
 import AnalyticsPanel from './AnalyticsPanel';
 import BackupPanel from './BackupPanel';
 
 export default function AdminPage() {
+  // Информация о правах и функция выхода
   const { isAdmin, logout } = useAuth();
+
+  // Хук для навигации по страницам
   const navigate = useNavigate();
+
+  // Состояние активной вкладки админ-панели
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Состояние индикатора загрузки
   const [loading, setLoading] = useState(true);
-  
-  // Состояния для пагинации
+
+  // Текущая страница и сколько элементов отображать
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  
-  // Состояния для фильтров
+
+  // Фильтры для поиска и сортировки в таблицах
   const [filters, setFilters] = useState({
     search: '',
     action: '',
@@ -32,23 +37,21 @@ export default function AdminPage() {
     dateTo: '',
     status: 'all'
   });
-  
-  // Основные данные
-  const [users, setUsers] = useState([]);
-  const [queue, setQueue] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [systemStats, setSystemStats] = useState({});
-  
-  // Ссылки для экспорта
-  const exportLinkRef = useRef(null);
 
-  // Загрузка данных при смене вкладки
+  const [users, setUsers] = useState([]);        // Список пользователей
+  const [queue, setQueue] = useState([]);        // Очередь задач
+  const [logs, setLogs] = useState([]);          // Логи
+  const [systemStats, setSystemStats] = useState({}); // Статистика
+
+  // Ссылка для скачивания экспортированных данных
+  const exportLinkRef = useRef(null);
   useEffect(() => {
     if (!isAdmin) return;
-    
-    setLoading(true);
-    setCurrentPage(1);
-    
+
+    setLoading(true);  //спиннер загрузки
+    setCurrentPage(1); //сбрасываем страницу на первую при смене вкладки
+
+    // В зависимости от активной вкладки вызываются разные функции
     switch (activeTab) {
       case 'dashboard':
         loadStats();
@@ -67,10 +70,9 @@ export default function AdminPage() {
     }
   }, [activeTab, isAdmin]);
 
-  // Загрузка данных при изменении страницы или фильтров
   useEffect(() => {
     if (!isAdmin) return;
-    
+
     switch (activeTab) {
       case 'users':
         loadUsers();
@@ -86,7 +88,7 @@ export default function AdminPage() {
     }
   }, [currentPage, itemsPerPage, filters]);
 
-  // Загрузка статистики
+  // Функция загрузки статистики
   const loadStats = async () => {
     try {
       const stats = await api.admin.getStats();
@@ -97,15 +99,10 @@ export default function AdminPage() {
     }
   };
 
-  // Загрузка пользователей
+  // Загрузка списка пользователей
   const loadUsers = async () => {
     try {
-      const data = await api.admin.getUsers(
-        currentPage, 
-        itemsPerPage, 
-        filters.search
-      );
-      
+      const data = await api.admin.getUsers(currentPage, itemsPerPage, filters.search);
       setUsers(data.users);
       setTotalItems(data.total);
       setLoading(false);
@@ -114,7 +111,7 @@ export default function AdminPage() {
     }
   };
 
-  // Загрузка очереди
+  // Загрузка очереди задач
   const loadQueue = async () => {
     try {
       const data = await api.admin.getQueue(currentPage, itemsPerPage);
@@ -126,20 +123,15 @@ export default function AdminPage() {
     }
   };
 
-  // Загрузка логов
+  // Загрузка логов с фильтрами
   const loadLogs = async () => {
     try {
-      const data = await api.admin.getLogs(
-        currentPage, 
-        itemsPerPage, 
-        {
-          action: filters.action,
-          userId: filters.userId,
-          dateFrom: filters.dateFrom,
-          dateTo: filters.dateTo
-        }
-      );
-      
+      const data = await api.admin.getLogs(currentPage, itemsPerPage, {
+        action: filters.action,
+        userId: filters.userId,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo
+      });
       setLogs(data.logs);
       setTotalItems(data.total);
       setLoading(false);
@@ -148,12 +140,12 @@ export default function AdminPage() {
     }
   };
 
-  // Блокировка/разблокировка пользователя
+  // Переключение статуса блокировки пользователя
   const toggleUserBlock = async (userId, isBlocked) => {
     try {
       await api.admin.toggleUserBlock(userId, !isBlocked);
       showSuccess(`Пользователь успешно ${!isBlocked ? 'заблокирован' : 'разблокирован'}`);
-      loadUsers();
+      loadUsers(); 
     } catch (error) {
       showError('Ошибка изменения статуса пользователя');
     }
@@ -170,24 +162,25 @@ export default function AdminPage() {
     }
   };
 
-  // Экспорт данных
+  // Экспорт данных в CSV
   const exportData = async (type) => {
     try {
       const blob = await api.admin.exportData(type, filters);
-      
+
+      // Создаем URL для скачивания
       const url = window.URL.createObjectURL(blob);
       const a = exportLinkRef.current;
       a.href = url;
       a.download = `${type}_export_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
-      
+
       showSuccess(`Данные успешно экспортированы в ${type}_export.csv`);
     } catch (error) {
       showError('Ошибка экспорта данных');
     }
   };
 
-  // Уведомления
+  //уведомление об успешном действии
   const showSuccess = (message) => {
     toast.success(message, {
       position: "top-right",
@@ -195,6 +188,7 @@ export default function AdminPage() {
     });
   };
 
+  //уведомление об ошибке
   const showError = (message) => {
     toast.error(message, {
       position: "top-right",
@@ -202,15 +196,13 @@ export default function AdminPage() {
     });
   };
 
-  // Обработчики изменений фильтров
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
-
-  // Расчет общего количества страниц
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  // если пользователь не админ - показываем сообщение об отказе в доступе
   if (!isAdmin) {
     return (
       <div className="page-center">
@@ -228,11 +220,13 @@ export default function AdminPage() {
 
   return (
     <div className="admin-container">
+      {/* Контейнер для уведомлений */}
       <ToastContainer />
       <a ref={exportLinkRef} style={{ display: 'none' }}></a>
-      
+
       <h1>Административная панель</h1>
-      
+
+      {/* Вкладки для переключения разделов панели */}
       <div className="admin-tabs">
         <button 
           className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
@@ -283,7 +277,7 @@ export default function AdminPage() {
           Резервирование
         </button>
       </div>
-      
+
       {loading ? (
         <div className="loader"></div>
       ) : (
@@ -310,7 +304,7 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-          
+     
           {activeTab === 'users' && (
             <div className="users-management">
               <div className="admin-toolbar">
@@ -322,6 +316,7 @@ export default function AdminPage() {
                   onChange={handleFilterChange}
                   className="admin-search"
                 />
+                {/* Кнопка экспорта данных пользователей в CSV */}
                 <button 
                   className="btn-export"
                   onClick={() => exportData('users')}
@@ -330,6 +325,7 @@ export default function AdminPage() {
                 </button>
               </div>
               
+              {/* Таблица пользователей */}
               <table className="admin-table">
                 <thead>
                   <tr>
@@ -349,6 +345,7 @@ export default function AdminPage() {
                       <td>{new Date(user.registrationDate).toLocaleDateString()}</td>
                       <td>{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Никогда'}</td>
                       <td>
+                        {/* Статус пользователя*/}
                         {user.isBlocked ? (
                           <span className="status-bad">Заблокирован</span>
                         ) : user.isActive ? (
@@ -370,6 +367,7 @@ export default function AdminPage() {
                 </tbody>
               </table>
               
+              {/* Пагинация для листания страниц пользователей */}
               <div className="pagination">
                 <button 
                   disabled={currentPage === 1}
@@ -384,6 +382,7 @@ export default function AdminPage() {
                 >
                   Вперед &rarr;
                 </button>
+                {/* Выбор количества пользователей на странице */}
                 <select
                   value={itemsPerPage}
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
@@ -395,7 +394,8 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-          
+
+
           {activeTab === 'queue' && (
             <div className="queue-management">
               <div className="admin-toolbar">
@@ -407,6 +407,7 @@ export default function AdminPage() {
                 </button>
               </div>
               
+              {/* Таблица очереди задач */}
               <table className="admin-table">
                 <thead>
                   <tr>
@@ -469,9 +470,11 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-          
+
+
           {activeTab === 'logs' && (
             <div className="logs-management">
+              {/* Фильтры для логов */}
               <div className="filters-container">
                 <div className="filter-group">
                   <label>Действие:</label>
@@ -519,6 +522,7 @@ export default function AdminPage() {
                   />
                 </div>
                 
+                {/* Кнопка экспорта логов */}
                 <button 
                   className="btn-export"
                   onClick={() => exportData('logs')}
@@ -527,6 +531,7 @@ export default function AdminPage() {
                 </button>
               </div>
               
+              {/* Таблица логов */}
               <table className="admin-table">
                 <thead>
                   <tr>
@@ -564,6 +569,7 @@ export default function AdminPage() {
                 >
                   Вперед &rarr;
                 </button>
+                {/* Выбор количества записей на странице */}
                 <select
                   value={itemsPerPage}
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
@@ -576,6 +582,9 @@ export default function AdminPage() {
             </div>
           )}
 
+          /* Далее подключение отдельных панелей для SEO, Content, Analytics и Backup,
+            реализованных в отдельных компонентах, чтобы не перегружать основной файл */
+
           {activeTab === 'seo' && <SEOPanel />}
           {activeTab === 'content' && <ContentPanel />}
           {activeTab === 'analytics' && <AnalyticsPanel />}
@@ -584,4 +593,4 @@ export default function AdminPage() {
       )}
     </div>
   );
-}
+}     
