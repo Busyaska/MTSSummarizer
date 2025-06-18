@@ -48,9 +48,27 @@ export default function Sidebar() {
               <div key={day} className="history-group">
                 <strong>{day}</strong>
                 <ul>
-                  {items.map((req, idx) => (
-                    <li key={idx}>{req}</li>
-                  ))}
+                    {items.map((req, idx) => (
+                      <li key={idx} style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '100%'
+                      }}>
+                        <a
+                          href={req}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={req}
+                          style={{
+                            color: 'inherit',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          {req.length > 40 ? req.slice(0, 40) + '…' : req}
+                        </a>
+                      </li>
+                    ))}
                 </ul>
               </div>
             ))
