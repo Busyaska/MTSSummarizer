@@ -20,13 +20,16 @@ class TaskQueue:
     async def __get_summary(self, article_text: str, comments_list: list[str]) -> tuple[str, str]:
         async with ClientSession() as session:
             article_summary: str = await deepseek_model.summarize_text(article_text)
-            async with session.post("http://sentiment-analyzer-model-api:8080/api/v1/analyze-comments-sentiment/",
-                                    json={"comments_list": comments_list}) as sentiment_analyzer_model_api_responce:
-                analysis: dict[str, int] = await sentiment_analyzer_model_api_responce.json()
-            async with session.post("http://comments-clustering-model-api:8081/api/v1/get-comments-clusters/",
-                                    json={"comments_list": comments_list}) as comments_clustering_model_api_responce:
-                clusters: list[dict[str, list[str]]] = await comments_clustering_model_api_responce.json()
-            comments_result: str = dumps({"analysis": analysis, "clusters": clusters}, ensure_ascii=False)
+            if len(comments_list) != 0:
+                async with session.post("http://sentiment-analyzer-model-api:8080/api/v1/analyze-comments-sentiment/",
+                                        json={"comments_list": comments_list}) as sentiment_analyzer_model_api_responce:
+                    analysis: dict[str, int] = await sentiment_analyzer_model_api_responce.json()
+                async with session.post("http://comments-clustering-model-api:8081/api/v1/get-comments-clusters/",
+                                        json={"comments_list": comments_list}) as comments_clustering_model_api_responce:
+                    clusters: list[dict[str, list[str]]] = await comments_clustering_model_api_responce.json()
+                comments_result: str = dumps({"analysis": analysis, "clusters": clusters}, ensure_ascii=False)
+            else: 
+                comments_result: str = ""
             return article_summary, comments_result
 
     async def __worker(self, function: Callable):

@@ -2,7 +2,6 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict
-from json import dumps
 from SentimentAnalyzerModel import sentiment_analyzer_model
 
 
