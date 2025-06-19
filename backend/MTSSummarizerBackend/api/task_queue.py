@@ -2,12 +2,14 @@ from rest_framework.exceptions import APIException, status
 from asyncio import Queue, create_task, get_event_loop
 from aiohttp import ClientSession
 from typing import Callable
+from json import dumps
+from .DeepSeekModel import deepseek_model
 
 
 class TaskQueue:
 
-    def __init__(self):
-        self.__queue = Queue(maxsize=5)
+    def __init__(self, maxsize: int=5):
+        self.__queue = Queue(maxsize=maxsize)
         self.__started = False
 
     async def start(self):
@@ -15,15 +17,17 @@ class TaskQueue:
             create_task(self.__worker(self.__get_summary))
             self.__started = True
 
-    async def __get_summary(self, article_text: str, comments_text: str) -> tuple[str, str]:
+    async def __get_summary(self, article_text: str, comments_list: list[str]) -> tuple[str, str]:
         async with ClientSession() as session:
-            json = {
-                "article_text": article_text, 
-                "comments_text": comments_text
-            }
-            async with session.post("http://models-api:8080/api/v1/summarize/", json=json) as responce:
-                result = await responce.json()
-                return result['article_summary'], result['comments_summary']
+            article_summary: str = await deepseek_model.summarize_text(article_text)
+            async with session.post("http://sentiment-analyzer-model-api:8080/api/v1/analyze-comments-sentiment/",
+                                    json={"comments_list": comments_list}) as sentiment_analyzer_model_api_responce:
+                analysis: dict[str, int] = await sentiment_analyzer_model_api_responce.json()
+            async with session.post("http://comments-clustering-model-api:8081/api/v1/get-comments-clusters/",
+                                    json={"comments_list": comments_list}) as comments_clustering_model_api_responce:
+                clusters: list[dict[str, list[str]]] = await comments_clustering_model_api_responce.json()
+            comments_result: str = dumps({"analysis": analysis, "clusters": clusters}, ensure_ascii=False)
+            return article_summary, comments_result
 
     async def __worker(self, function: Callable):
         while True:
