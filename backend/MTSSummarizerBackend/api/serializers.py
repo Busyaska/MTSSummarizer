@@ -18,8 +18,7 @@ class ArticleDataBaseSerializer(ModelSerializer):
         parsed_article, parsed_comments = await parser.parsing_article(url)
         article_title = parsed_article['title']
         article_text = parsed_article['text']
-        comments_text = '\n'.join([f'Комментарий {i}: {parsed_comments[i]}' for i in range(len(parsed_comments))])
-        article_summary, comments_summary = await task_queue.process_task(article_text, comments_text)
+        article_summary, comments_summary = await task_queue.process_task(article_text, parsed_comments)
         return await Article.objects.acreate(url=url, title=article_title,
                                              article_summary=article_summary, 
                                              comments_summary=comments_summary, user=user)
@@ -41,8 +40,7 @@ class ArticleSerialiser(Serializer):
         parsed_article, parsed_comments = await parser.parsing_article(url)
         article_title = parsed_article['title']
         article_text = parsed_article['text']
-        comments_text = '\n'.join([f'Комментарий {i}: {parsed_comments[i]}' for i in range(len(parsed_comments))])
-        article_summary, comments_summary = await task_queue.process_task(article_text, comments_text)
+        article_summary, comments_summary = await task_queue.process_task(article_text, parsed_comments)
         return {"url": url,
                "title": article_title,
                "article_summary": article_summary,

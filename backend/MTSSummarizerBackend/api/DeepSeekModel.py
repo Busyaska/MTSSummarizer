@@ -1,5 +1,4 @@
 import openai
-from transformers import AutoTokenizer, T5ForConditionalGeneration
 from dotenv import load_dotenv
 from os import getenv
 from os.path import join
@@ -10,32 +9,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(dotenv_path=join(BASE_DIR, '.env'))
 DEEPSEEK_API_KEY = getenv('DEEPSEEK_API_KEY', '<DeepSeek API Key>')
 
-
-class SummaryModel:
-
-    def __init__(self):
-        self.__model_name = "IlyaGusev/rut5_base_sum_gazeta"
-        self.__tokenizer = AutoTokenizer.from_pretrained(self.__model_name)
-        self.__model = T5ForConditionalGeneration.from_pretrained(self.__model_name)
-
-    def get_summary(self, text: str) -> str:
-        input_ids = self.__tokenizer(
-            [text],
-            max_length=600,
-            add_special_tokens=True,
-            padding="max_length",
-            truncation=True,
-            return_tensors="pt"
-        )["input_ids"]
-        
-        output_ids = self.__model.generate(
-            input_ids=input_ids,
-            no_repeat_ngram_size=4
-        )[0]
-        
-        summary = self.__tokenizer.decode(output_ids, skip_special_tokens=True)
-        return summary
-    
 
 class DeepSeek:
     def __init__(self):
@@ -70,8 +43,6 @@ class DeepSeek:
         Текст для суммаризации:\n\n{text}'''
         response = await self._make_api_request(prompt, max_tokens=500)
         return response
+    
 
-
-
-summary_model = SummaryModel() 
 deepseek_model = DeepSeek()
