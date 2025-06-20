@@ -25,6 +25,11 @@ services:
   comments-clustering-model-api:
     build: ./backend/CommentClusteringModelAPI/
 
+  frontend:
+    build: ./frontend/
+    volumes:
+      - static:/frontend/build
+
   gateway:
     build: ./gateway/
     ports:
@@ -35,3 +40,4 @@ services:
       - mts-summarizer
       - sentiment-analyzer-model-api
       - comments-clustering-model-api
+      - frontend
