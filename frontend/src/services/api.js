@@ -32,7 +32,6 @@ export async function authorizedFetch(url, options = {}, withAuth = true) {
 
   if (withAuth) {
     const token = getAccessToken();
-    console.log(token);
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
@@ -68,12 +67,13 @@ export default {
   getLatestArticles: () => authorizedFetch('/api/v1/latest/', {}, false),
   getAnalysisResults: (id) => authorizedFetch(`/api/v1/article/${id}/`, {}, false),
 
-  createAnalysis: (url) =>
+
+  createAnalysis: (url, withAuth = false) =>
     authorizedFetch('/api/v1/create/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url }),
-    }, false),
+    }, withAuth),
 
   // С авторизацией
   getHistoryList: () => authorizedFetch('/api/v1/list/'),

@@ -82,7 +82,7 @@ export default function Sidebar() {
                       }}
                     >
                       <Link
-                        to={`/article/${item.id}`}
+                        to={`/api/v1/article/${item.id}/`}
                         title={item.title}
                         style={{ color: 'inherit', textDecoration: 'none' }}
                       >

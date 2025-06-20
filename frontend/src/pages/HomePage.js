@@ -9,7 +9,8 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const HomePage = () => {
-  const { isAuthenticated, refreshHistory } = useAuth();
+  const { isAuthenticated, refreshHistory, fetchWithAuth } = useAuth();
+
   const navigate = useNavigate();
 
   const [url, setUrl] = useState('');
@@ -26,6 +27,7 @@ const HomePage = () => {
   const [recentArticles, setRecentArticles] = useState([]);
   const [recentArticlesError, setRecentArticlesError] = useState(null);
   const [hasComments, setHasComments] = useState(false);
+  
 
   useEffect(() => {
     api.getLatestArticles()
@@ -61,7 +63,8 @@ const HomePage = () => {
     });
 
     try {
-      const results = await api.createAnalysis(url);
+      const results = await api.createAnalysis(url, isAuthenticated);
+;
 
       setSummary(results.article_summary || '');
       setTitle(results.title || '');
