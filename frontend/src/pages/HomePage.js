@@ -237,7 +237,7 @@ const HomePage = () => {
       </div>
 
       <div className="recent-articles-section">
-        <h2>Последние статьи</h2>
+        <h2>Последние статьи с Habr от МТС</h2>
         {recentArticlesError && (
           <div className="error-message">Ошибка загрузки статей: {recentArticlesError}</div>
         )}

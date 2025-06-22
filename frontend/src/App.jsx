@@ -14,7 +14,7 @@ import AdminPage from './pages/AdminPage';
 import AdminRoute from './components/AdminRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import ArticleDetail from './pages/ArticleDetail'
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [theme, setTheme] = useState(() => {
@@ -54,6 +54,8 @@ export default function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/leave-review" element={<LeaveReviewPage />} />
+
+                <Route path="/article/:id" element={<ArticleDetail />} />
 
                 {/* Админ-панель */}
                 <Route path="/admin" element={
