@@ -46,6 +46,7 @@ function parseApiError(data) {
 
   if (data.detail) {
     if (data.detail.includes('No active account')) return 'Неверное имя пользователя или пароль';
+    if (data.detail.includes('This is not Habr article')) return 'Это не статья с Хабра.';
     return data.detail;
   }
 
@@ -56,6 +57,12 @@ function parseApiError(data) {
 
   if (data.username) {
     const userErrors = Array.isArray(data.username) ? data.username : [data.username];
+    for (const err of userErrors) {
+      if (err.includes('A user with that username already exists')) {
+        return 'Пользователь с таким именем уже существует.';
+      
+      }
+    }
     return 'Имя пользователя: ' + userErrors.join('; ');
   }
 
