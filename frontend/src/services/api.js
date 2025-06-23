@@ -29,7 +29,6 @@ export async function refreshAccessToken() {
 
 function parseApiError(data) {
   if (!data) return 'Неизвестная ошибка';
-
   if (typeof data === 'string') return data;
 
   if (data.url) {
@@ -45,9 +44,14 @@ function parseApiError(data) {
   }
 
   if (data.detail) {
-    if (data.detail.includes('No active account')) return 'Неверное имя пользователя или пароль';
-    if (data.detail.includes('This is not Habr article')) return 'Это не статья с Хабра.';
-    return data.detail;
+    if (typeof data.detail === 'string') {
+      const lower = data.detail.toLowerCase();
+      if (lower.includes('no active account')) return 'Неверное имя пользователя или пароль';
+      if (lower.includes('this is not habr article')) {
+        return 'Пожалуйста, введите ссылку на статью с Habr.';
+      }
+      return data.detail;
+    }
   }
 
   if (data.password) {
@@ -60,7 +64,6 @@ function parseApiError(data) {
     for (const err of userErrors) {
       if (err.includes('A user with that username already exists')) {
         return 'Пользователь с таким именем уже существует.';
-      
       }
     }
     return 'Имя пользователя: ' + userErrors.join('; ');
@@ -81,7 +84,6 @@ function parseApiError(data) {
   }
 
   if (messages.length) return messages.join('; ');
-
   return 'Ошибка: ' + JSON.stringify(data);
 }
 
@@ -115,8 +117,8 @@ export async function authorizedFetch(url, options = {}, withAuth = true) {
     try {
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('application/json')) {
-        const data = await res.clone().json();
-        errorText = parseApiError(data);
+        const json = await res.clone().json();
+        errorText = parseApiError(json);
       } else if (contentType.includes('text/html')) {
         errorText = 'Внутренняя ошибка сервера (500). Проверьте корректность ссылки.';
       } else {
@@ -152,9 +154,7 @@ export default {
     authorizedFetch(`/api/v1/article/${id}/`, {}, withAuth),
 
   deleteArticle: (id) =>
-    authorizedFetch(`/api/v1/article/${id}/`, {
-      method: 'DELETE',
-    }),
+    authorizedFetch(`/api/v1/article/${id}/`, { method: 'DELETE' }),
 
   createAnalysis: (url, withAuth = false) =>
     authorizedFetch('/api/v1/create/', {
@@ -175,12 +175,13 @@ export default {
     });
 
     if (!res.ok) {
-      const err = await res.text();
       let errMsg;
       try {
-        errMsg = parseApiError(JSON.parse(err));
+        const json = await res.clone().json();
+        errMsg = parseApiError(json);
       } catch {
-        errMsg = err;
+        const text = await res.text();
+        errMsg = text;
       }
       throw new Error(`Ошибка входа: ${errMsg}`);
     }
@@ -200,12 +201,13 @@ export default {
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
       let errMsg;
       try {
-        errMsg = parseApiError(JSON.parse(errorText));
+        const json = await res.clone().json();
+        errMsg = parseApiError(json);
       } catch {
-        errMsg = errorText;
+        const text = await res.text();
+        errMsg = text;
       }
       throw new Error(`Ошибка регистрации: ${errMsg}`);
     }

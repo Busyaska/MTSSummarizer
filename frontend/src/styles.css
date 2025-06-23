@@ -252,7 +252,7 @@ textarea {
   padding:            20px;
   display:            flex;
   flex-direction:    column;
-  justify-content:   space-between;
+  justify-content:   flex-start;;
 }
 /* 
   .history-group strong — стили для заголовков внутри истории запросов
@@ -1265,7 +1265,8 @@ SEO Панель
   margin-bottom: 0.3rem;
 }
 .history-grid {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
@@ -1323,5 +1324,60 @@ SEO Панель
   align-items: center;
   margin-top: 15px;
 }
+.article-detail-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
+}
 
+.article-detail-title {
+  font-size: 2rem;
+  margin-bottom: 12px;
+  font-weight: 700;
+  color: #222;
+}
+
+.article-detail-summary-block {
+  background: #f9f9f9;
+  padding: 15px 20px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.article-detail-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #555;
+  font-weight: 600;
+}
+
+.article-detail-icon-sparkle {
+  width: 24px;
+  height: 24px;
+  color: #c0392b;
+}
+
+.article-detail-summary-text {
+  white-space: pre-wrap;
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1.5;
+  color: #333;
+  font-size: 1rem;
+}
+  
+.article-detail-status {
+  text-align: center;
+  padding: 30px 0;
+  color: #666;
+  font-size: 1.2rem;
+}
+
+.article-detail-error {
+  color: #c0392b;
+}
 

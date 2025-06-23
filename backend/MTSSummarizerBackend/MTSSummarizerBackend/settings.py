@@ -153,7 +153,7 @@ REST_FRAMEWORK = {
         'user': '1000/day',
         'anon': '100/day'
     },
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 5
 }
 
 SIMPLE_JWT = {
