@@ -20,7 +20,7 @@ class TaskQueue:
     async def __get_summary(self, article_text: str, comments_list: list[str]) -> tuple[str, str]:
         async with ClientSession() as session:
             article_summary: str = await deepseek_model.summarize_text(article_text)
-            if len(comments_list) != 0:
+            if len(comments_list) > 5:
                 async with session.post("http://sentiment-analyzer-model-api:8080/api/v1/analyze-comments-sentiment/",
                                         json={"comments_list": comments_list}) as sentiment_analyzer_model_api_responce:
                     analysis: dict[str, int] = await sentiment_analyzer_model_api_responce.json()
